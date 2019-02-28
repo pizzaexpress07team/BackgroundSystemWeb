@@ -1,38 +1,30 @@
 ---
 name: Bug报告
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+about: 请按要求填写bug报告
+title: "[BUG] xxx问题"
+labels: bug
+assignees: KingGanZeng
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**描述**
+例：首页点击个人中心，按钮未高亮
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**如何重现**
+1. 进入首页
+2. 点击个人中心按钮
+3. 页面跳转，但按钮未高亮
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**期望效果**
+点击个人中心按钮，按钮高亮，页面跳转
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**截图**
 
-**Desktop (please complete the following information):**
+**设备信息**
+ - Device: [e.g. iPhone6]
  - OS: [e.g. iOS]
  - Browser [e.g. chrome, safari]
  - Version [e.g. 22]
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
+**其他说明**
+例：此bug优先级较低，再不影响开发进度下进行修改。
