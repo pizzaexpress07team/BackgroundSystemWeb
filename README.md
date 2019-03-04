@@ -1,6 +1,10 @@
 # BackgroundSystemWeb
 PizzaExpress后台系统-Web站
 
+## 文档链接
+* vue文档链接: <a href="https://cn.vuejs.org/v2/guide/">vue.js</a>
+* element文档链接: <a href="http://element-cn.eleme.io/#/zh-CN/component/layout">ELement</a>
+
 ## Project setup
 ```
 npm install
