@@ -1,9 +1,10 @@
 import axios from 'axios';
 
+//let base = 'http://3.86.76.105:8080';
 let base = '';
 
 export const requestLogin = params => {
-  return axios.post(`${base}/login`, params).then(res => res.data);
+  return axios.post(`${base}/user/login`, params).then(res => res.data);
 };
 
 export const getUserList = params => {

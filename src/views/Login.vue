@@ -55,15 +55,16 @@
               .then(data => {
                 console.log(data);
               this.logining = false;
-              //NProgress.done();
-              let {msg, code, user} = data;
-              if (code !== 200) {
+                //NProgress.done()
+                const result = data.data;
+
+                if (result.errorCode !== 0) {
                 this.$message({
-                  message: msg,
+                  message: result.errorMsg,
                   type: 'error'
                 });
               } else {
-                sessionStorage.setItem('user', JSON.stringify(user));
+                  sessionStorage.setItem('user', JSON.stringify(result.username));
                 this.$router.push({path: '/table'});
               }
             });
