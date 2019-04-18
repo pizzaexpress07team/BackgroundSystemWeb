@@ -181,7 +181,8 @@
         this.page = val;
         this.getUsers();
       },
-      //获取用户列表
+
+      //获取列表
       getUsers() {
         let para = {
           page: this.page,
@@ -189,13 +190,28 @@
         };
         this.listLoading = true;
         //NProgress.start();
-        getUserListPage(para).then((res) => {
+        /*getUserListPage(para).then((res) => {
           this.total = res.data.total;
           this.users = res.data.users;
           this.listLoading = false;
           //NProgress.done();
-        });
+        });*/
+
+        this.getRequest(`/user/addr`)
+          .then(data => {
+            console.log(data);
+            //NProgress.done()
+            const result = data.data;
+            this.users = data.data.list;
+            if (result.errorCode !== 0) {
+              this.$message({
+                message: result.errorMsg,
+                type: 'error'
+              });
+            }
+          });
       },
+
       //删除
       handleDel: function (index, row) {
         this.$confirm('确认删除该记录吗?', '提示', {
