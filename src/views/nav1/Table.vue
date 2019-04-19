@@ -22,15 +22,24 @@
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="name" label="订单ID" width="120" sortable>
+      <el-table-column prop="o_id" label="订单ID">
       </el-table-column>
-      <el-table-column prop="sex" label="用户ID" width="100" sortable>
+      <el-table-column prop="u_id" label="用户ID" sortable>
       </el-table-column>
-      <el-table-column prop="age" label="地址ID" width="100" sortable>
+      <el-table-column label="地址">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ tranAddr(scope.row.o_delivery_addr) }}</span>
+        </template>
       </el-table-column>
-      <el-table-column prop="birth" label="订单详情" width="120" sortable>
+      <el-table-column  label="支付状态">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ parsePayState(scope.row.o_pay_state) }}</span>
+        </template>
       </el-table-column>
-      <el-table-column prop="addr" label="订单价格" min-width="180" sortable>
+      <el-table-column label="配送状态">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ parseDeliveryState(scope.row.delivery_state) }}</span>
+        </template>
       </el-table-column>
       <el-table-column label="操作" width="150">
         <template slot-scope="scope">
@@ -43,7 +52,7 @@
     <!--工具条-->
     <el-col :span="24" class="toolbar">
       <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
-      <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total"
+      <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                      style="float:right;">
       </el-pagination>
     </el-col>
@@ -52,19 +61,19 @@
     <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
       <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
         <el-form-item label="订单ID" prop="name">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+          <el-input type="textarea" v-model="editForm.o_id" disabled></el-input>
         </el-form-item>
         <el-form-item label="用户ID">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+          <el-input type="textarea" v-model="editForm.u_id" disabled></el-input>
         </el-form-item>
-        <el-form-item label="地址ID">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="地址">
+          <el-input type="textarea" v-model="editForm.o_delivery_addr"></el-input>
         </el-form-item>
-        <el-form-item label="订单详情">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="支付状态">
+          <el-input type="textarea" v-model="editForm.o_pay_state"></el-input>
         </el-form-item>
-        <el-form-item label="订单价格">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="配送状态">
+          <el-input type="textarea" v-model="editForm.delivery_state"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -122,6 +131,7 @@
 
 <script>
   import util from '../../common/js/util'
+  import { parsePayState } from '../../common/js/util'
   //import NProgress from 'nprogress'
   import {getUserListPage, removeUser, batchRemoveUser, editUser, addUser} from '../../api/api';
 
@@ -132,7 +142,7 @@
           name: ''
         },
         users: [],
-        total: 0,
+        total: 100,
         page: 1,
         listLoading: false,
         sels: [],//列表选中列
@@ -181,6 +191,22 @@
         this.page = val;
         this.getUsers();
       },
+      parsePayState(payState) {
+        return payState === 0 ? '未支付' : '已支付';
+      },
+      parseDeliveryState(deliveryState) {
+        if (deliveryState === 0) {
+          return '未配送';
+        } else if (deliveryState === 1) {
+          return '配送中';
+        } else {
+          return '已送达';
+        }
+      },
+      tranAddr(stringAddr) {
+        const addr = JSON.parse(stringAddr);
+        return addr.detail;
+      },
 
       //获取列表
       getUsers() {
@@ -197,15 +223,22 @@
           //NProgress.done();
         });*/
 
-        this.getRequest(`/user/addr`)
+        const url = `/order/list?pno=${this.page}&pageSize=10`;
+        this.getRequest(url)
           .then(data => {
-            console.log(data);
             //NProgress.done()
             const result = data.data;
-            this.users = data.data.list;
-            if (result.errorCode !== 0) {
+            this.users = result;
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page-1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }
+            if (!result) {
               this.$message({
-                message: result.errorMsg,
+                message: '',
                 type: 'error'
               });
             }
