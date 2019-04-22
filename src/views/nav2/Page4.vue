@@ -189,12 +189,33 @@
         };
         this.listLoading = true;
         //NProgress.start();
-        getUserListPage(para).then((res) => {
+        /*getUserListPage(para).then((res) => {
           this.total = res.data.total;
           this.users = res.data.users;
           this.listLoading = false;
           //NProgress.done();
-        });
+        });*/
+
+        const url = `/deli/status?deliverId=${this.filters.name}`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            this.users = result;
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
       },
       //删除
       handleDel: function (index, row) {

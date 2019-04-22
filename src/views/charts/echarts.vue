@@ -1,217 +1,368 @@
 <template>
-  <section class="chart-container">
-    <el-row>
-      <el-col :span="12">
-        <div id="chartColumn" style="width:100%; height:400px;"></div>
-      </el-col>
-      <el-col :span="12">
-        <div id="chartBar" style="width:100%; height:400px;"></div>
-      </el-col>
-      <el-col :span="12">
-        <div id="chartLine" style="width:100%; height:400px;"></div>
-      </el-col>
-      <el-col :span="12">
-        <div id="chartPie" style="width:100%; height:400px;"></div>
-      </el-col>
-      <el-col :span="24">
-        <a href="http://echarts.baidu.com/examples.html" target="_blank" style="float: right;">more>></a>
-      </el-col>
-    </el-row>
+  <section>
+    <!--工具条-->
+    <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+      <el-form :inline="true" :model="filters">
+        <el-form-item>
+          <el-input v-model="filters.name" placeholder="用户ID"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" v-on:click="getUsers">查询</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleAdd">新增</el-button>
+        </el-form-item>
+      </el-form>
+    </el-col>
+
+    <!--列表-->
+    <el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
+              style="width: 100%;">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column type="index" width="60">
+      </el-table-column>
+      <el-table-column prop="o_id" label="订单ID">
+      </el-table-column>
+      <el-table-column prop="u_id" label="用户ID" sortable>
+      </el-table-column>
+      <el-table-column label="地址">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ tranAddr(scope.row.o_delivery_addr) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="支付状态">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ parsePayState(scope.row.o_pay_state) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="配送状态">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ parseDeliveryState(scope.row.delivery_state) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="150">
+        <template slot-scope="scope">
+          <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+          <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!--工具条-->
+    <el-col :span="24" class="toolbar">
+      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
+      <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
+                     style="float:right;">
+      </el-pagination>
+    </el-col>
+
+    <!--编辑界面-->
+    <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
+      <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
+        <el-form-item label="订单ID" prop="name">
+          <el-input type="textarea" v-model="editForm.o_id" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="用户ID">
+          <el-input type="textarea" v-model="editForm.u_id" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input type="textarea" v-model="editForm.o_delivery_addr"></el-input>
+        </el-form-item>
+        <el-form-item label="支付状态">
+          <el-input type="textarea" v-model="editForm.o_pay_state"></el-input>
+        </el-form-item>
+        <el-form-item label="配送状态">
+          <el-input type="textarea" v-model="editForm.delivery_state"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click.native="editFormVisible = false">取消</el-button>
+        <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+      </div>
+    </el-dialog>
+
+    <!--新增界面-->
+    <el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
+      <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
+        <!--
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="addForm.name" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-radio-group v-model="addForm.sex">
+            <el-radio class="radio" :label="1">男</el-radio>
+            <el-radio class="radio" :label="0">女</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="年龄">
+          <el-input-number v-model="addForm.age" :min="0" :max="200"></el-input-number>
+        </el-form-item>
+        <el-form-item label="生日">
+          <el-date-picker type="date" placeholder="选择日期" v-model="addForm.birth"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input type="textarea" v-model="addForm.addr"></el-input>
+        </el-form-item>
+        -->
+        <el-form-item label="订单ID" prop="name">
+          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        </el-form-item>
+        <el-form-item label="用户ID">
+          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        </el-form-item>
+        <el-form-item label="订单详情">
+          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        </el-form-item>
+        <el-form-item label="订单价格">
+          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click.native="addFormVisible = false">取消</el-button>
+        <el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+      </div>
+    </el-dialog>
   </section>
 </template>
 
 <script>
-  import echarts from 'echarts'
+  import util from '../../common/js/util'
+  import {parsePayState} from '../../common/js/util'
+  //import NProgress from 'nprogress'
+  import {getUserListPage, removeUser, batchRemoveUser, editUser, addUser} from '../../api/api';
 
   export default {
     data() {
       return {
-        chartColumn: null,
-        chartBar: null,
-        chartLine: null,
-        chartPie: null
+        filters: {
+          name: ''
+        },
+        users: [],
+        total: 100,
+        page: 1,
+        listLoading: false,
+        sels: [],//列表选中列
+
+        editFormVisible: false,//编辑界面是否显示
+        editLoading: false,
+        editFormRules: {
+          name: [
+            {required: true, message: '请输入姓名', trigger: 'blur'}
+          ]
+        },
+        //编辑界面数据
+        editForm: {
+          id: 0,
+          name: '',
+          sex: -1,
+          age: 0,
+          birth: '',
+          addr: ''
+        },
+
+        addFormVisible: false,//新增界面是否显示
+        addLoading: false,
+        addFormRules: {
+          name: [
+            {required: true, message: '请输入姓名', trigger: 'blur'}
+          ]
+        },
+        //新增界面数据
+        addForm: {
+          name: '',
+          sex: -1,
+          age: 0,
+          birth: '',
+          addr: ''
+        }
+
       }
     },
-
     methods: {
-      drawColumnChart() {
-        this.chartColumn = echarts.init(document.getElementById('chartColumn'));
-        this.chartColumn.setOption({
-          title: {text: 'Column Chart'},
-          tooltip: {},
-          xAxis: {
-            data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
-          },
-          yAxis: {},
-          series: [{
-            name: '销量',
-            type: 'bar',
-            data: [5, 20, 36, 10, 10, 20]
-          }]
-        });
+      //性别显示转换
+      formatSex: function (row, column) {
+        return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知';
       },
-      drawBarChart() {
-        this.chartBar = echarts.init(document.getElementById('chartBar'));
-        this.chartBar.setOption({
-          title: {
-            text: 'Bar Chart',
-            subtext: '数据来自网络'
-          },
-          tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-              type: 'shadow'
-            }
-          },
-          legend: {
-            data: ['2011年', '2012年']
-          },
-          grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-          },
-          xAxis: {
-            type: 'value',
-            boundaryGap: [0, 0.01]
-          },
-          yAxis: {
-            type: 'category',
-            data: ['巴西', '印尼', '美国', '印度', '中国', '世界人口(万)']
-          },
-          series: [
-            {
-              name: '2011年',
-              type: 'bar',
-              data: [18203, 23489, 29034, 104970, 131744, 630230]
-            },
-            {
-              name: '2012年',
-              type: 'bar',
-              data: [19325, 23438, 31000, 121594, 134141, 681807]
-            }
-          ]
-        });
+      handleCurrentChange(val) {
+        this.page = val;
+        this.getUsers();
       },
-      drawLineChart() {
-        this.chartLine = echarts.init(document.getElementById('chartLine'));
-        this.chartLine.setOption({
-          title: {
-            text: 'Line Chart'
-          },
-          tooltip: {
-            trigger: 'axis'
-          },
-          legend: {
-            data: ['邮件营销', '联盟广告', '搜索引擎']
-          },
-          grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-          },
-          xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-          },
-          yAxis: {
-            type: 'value'
-          },
-          series: [
-            {
-              name: '邮件营销',
-              type: 'line',
-              stack: '总量',
-              data: [120, 132, 101, 134, 90, 230, 210]
-            },
-            {
-              name: '联盟广告',
-              type: 'line',
-              stack: '总量',
-              data: [220, 182, 191, 234, 290, 330, 310]
-            },
-            {
-              name: '搜索引擎',
-              type: 'line',
-              stack: '总量',
-              data: [820, 932, 901, 934, 1290, 1330, 1320]
-            }
-          ]
-        });
+      parsePayState(payState) {
+        return payState === 0 ? '未支付' : '已支付';
       },
-      drawPieChart() {
-        this.chartPie = echarts.init(document.getElementById('chartPie'));
-        this.chartPie.setOption({
-          title: {
-            text: 'Pie Chart',
-            subtext: '纯属虚构',
-            x: 'center'
-          },
-          tooltip: {
-            trigger: 'item',
-            formatter: "{a} <br/>{b} : {c} ({d}%)"
-          },
-          legend: {
-            orient: 'vertical',
-            left: 'left',
-            data: ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']
-          },
-          series: [
-            {
-              name: '访问来源',
-              type: 'pie',
-              radius: '55%',
-              center: ['50%', '60%'],
-              data: [
-                {value: 335, name: '直接访问'},
-                {value: 310, name: '邮件营销'},
-                {value: 234, name: '联盟广告'},
-                {value: 135, name: '视频广告'},
-                {value: 1548, name: '搜索引擎'}
-              ],
-              itemStyle: {
-                emphasis: {
-                  shadowBlur: 10,
-                  shadowOffsetX: 0,
-                  shadowColor: 'rgba(0, 0, 0, 0.5)'
-                }
+      parseDeliveryState(deliveryState) {
+        if (deliveryState === 0) {
+          return '未配送';
+        } else if (deliveryState === 1) {
+          return '配送中';
+        } else {
+          return '已送达';
+        }
+      },
+      tranAddr(stringAddr) {
+        const addr = JSON.parse(stringAddr);
+        return addr.detail;
+      },
+
+      //获取列表
+      getUsers() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        //NProgress.start();
+        /*getUserListPage(para).then((res) => {
+          this.total = res.data.total;
+          this.users = res.data.users;
+          this.listLoading = false;
+          //NProgress.done();
+        });*/
+
+        const url = `/user/list?pno=${this.page}&pageSize=10`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            this.users = result;
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
               }
             }
-          ]
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
+      },
+
+      //删除
+      handleDel: function (index, row) {
+        this.$confirm('确认删除该记录吗?', '提示', {
+          type: 'warning'
+        }).then(() => {
+          this.listLoading = true;
+          //NProgress.start();
+          let para = {id: row.id};
+          removeUser(para).then((res) => {
+            this.listLoading = false;
+            //NProgress.done();
+            this.$message({
+              message: '删除成功',
+              type: 'success'
+            });
+            this.getUsers();
+          });
+        }).catch(() => {
+
         });
       },
-      drawCharts() {
-        this.drawColumnChart();
-        this.drawBarChart();
-        this.drawLineChart();
-        this.drawPieChart()
+      //显示编辑界面
+      handleEdit: function (index, row) {
+        this.editFormVisible = true;
+        this.editForm = Object.assign({}, row);
       },
-    },
+      //显示新增界面
+      handleAdd: function () {
+        this.addFormVisible = true;
+        this.addForm = {
+          name: '',
+          sex: -1,
+          age: 0,
+          birth: '',
+          addr: ''
+        };
+      },
+      //编辑
+      editSubmit: function () {
+        this.$refs.editForm.validate((valid) => {
+          if (valid) {
+            this.$confirm('确认提交吗？', '提示', {}).then(() => {
+              this.editLoading = true;
+              //NProgress.start();
+              let para = Object.assign({}, this.editForm);
+              //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
+              editUser(para).then((res) => {
+                this.editLoading = false;
+                //NProgress.done();
+                this.$message({
+                  message: '提交成功',
+                  type: 'success'
+                });
+                this.$refs['editForm'].resetFields();
+                this.editFormVisible = false;
+                this.getUsers();
+              });
+            });
+          }
+        });
+      },
+      //新增
+      addSubmit: function () {
+        this.$refs.addForm.validate((valid) => {
+          if (valid) {
+            this.$confirm('确认提交吗？', '提示', {}).then(() => {
+              this.addLoading = true;
+              //NProgress.start();
+              let para = Object.assign({}, this.addForm);
+              //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
+              addUser(para).then((res) => {
+                this.addLoading = false;
+                //NProgress.done();
+                this.$message({
+                  message: '提交成功',
+                  type: 'success'
+                });
+                this.$refs['addForm'].resetFields();
+                this.addFormVisible = false;
+                this.getUsers();
+              });
+            });
+          }
+        });
+      },
+      selsChange: function (sels) {
+        this.sels = sels;
+      },
+      //批量删除
+      batchRemove: function () {
+        var ids = this.sels.map(item => item.id).toString();
+        this.$confirm('确认删除选中记录吗？', '提示', {
+          type: 'warning'
+        }).then(() => {
+          this.listLoading = true;
+          //NProgress.start();
+          let para = {ids: ids};
+          batchRemoveUser(para).then((res) => {
+            this.listLoading = false;
+            //NProgress.done();
+            this.$message({
+              message: '删除成功',
+              type: 'success'
+            });
+            this.getUsers();
+          });
+        }).catch(() => {
 
-    mounted: function () {
-      this.drawCharts()
+        });
+      }
     },
-    updated: function () {
-      this.drawCharts()
+    mounted() {
+      this.getUsers();
     }
   }
+
 </script>
 
 <style scoped>
-  .chart-container {
-    width: 100%;
-    float: left;
-  }
 
-  /*.chart div {
-      height: 400px;
-      float: left;
-  }*/
-
-  .el-col {
-    padding: 30px 20px;
-  }
 </style>

@@ -44,26 +44,26 @@ let routes = [
     iconCls: 'fa fa-id-card-o',
     children: [
       {path: '/page4', component: Page4, name: '配送信息'},
-      //{path: '/page5', component: Page5, name: 'Page5'}
+      //{path: '/page5', component: Page5, name: '菜单展示'}
     ]
   },
   {
     path: '/',
     component: Home,
-    name: '库存管理',
+    name: '菜单展示',
     iconCls: 'fa fa-address-card',
     children: [
-      {path: '/page6', component: Page6, name: '库存信息'}
+      {path: '/page6', component: Page6, name: '菜单信息'}
     ]
   },
   {
     path: '/',
     component: Home,
-    name: '统计分析',
+    name: '用户信息',
     iconCls: 'fa fa-bar-chart',
     //leaf: true,//只有一个节点
     children: [
-      {path: '/echarts', component: echarts, name: '数据图表'}
+      {path: '/echarts', component: echarts, name: '用户列表'}
     ]
   },
   {
