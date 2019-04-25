@@ -4,7 +4,7 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="订单ID"></el-input>
+          <el-input v-model="filters.name" placeholder="食品名称"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" v-on:click="getUsers">查询</el-button>
@@ -22,11 +22,15 @@
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="p_id" label="订单ID">
+      <el-table-column prop="p_name" label="名称" sortable>
       </el-table-column>
-      <el-table-column prop="p_name" label="用户ID" sortable>
+      <el-table-column prop="p_type" label="种类" sortable>
       </el-table-column>
-      <el-table-column label="地址">
+      <el-table-column prop="price" label="价格" sortable>
+      </el-table-column>
+      <el-table-column prop="resource" label="原料" sortable>
+      </el-table-column>
+      <el-table-column label="图片">
         <template slot-scope="scope">
           <span style="margin-left: 10px">{{ (scope.row.p_picture) }}</span>
         </template>
@@ -45,20 +49,20 @@
     <!--编辑界面-->
     <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
       <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-        <el-form-item label="订单ID" prop="name">
-          <el-input type="textarea" v-model="editForm.o_id" disabled></el-input>
+        <el-form-item label="名称" prop="p_name">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="用户ID">
-          <el-input type="textarea" v-model="editForm.u_id" disabled></el-input>
+        <el-form-item label="种类" prop="p_type">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="地址">
-          <el-input type="textarea" v-model="editForm.o_delivery_addr"></el-input>
+        <el-form-item label="价格" prop="price">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="支付状态">
-          <el-input type="textarea" v-model="editForm.o_pay_state"></el-input>
+        <el-form-item label="原料" prop="resource">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="配送状态">
-          <el-input type="textarea" v-model="editForm.delivery_state"></el-input>
+        <el-form-item label="图片" prop="p_picture">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -90,20 +94,20 @@
           <el-input type="textarea" v-model="addForm.addr"></el-input>
         </el-form-item>
         -->
-        <el-form-item label="订单ID" prop="name">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="名称" prop="p_name">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="用户ID">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="种类" prop="p_type">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="地址ID">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="价格" prop="price">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="订单详情">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="原料" prop="resource">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
-        <el-form-item label="订单价格">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="图片" prop="p_picture">
+          <el-input type="textarea" v-model="editForm.text"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

@@ -22,9 +22,11 @@
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="o_id" label="订单ID">
+      <el-table-column prop="o_id" label="订单ID" sortable>
       </el-table-column>
       <el-table-column prop="u_id" label="用户ID" sortable>
+      </el-table-column>
+      <el-table-column prop="detail" label="详情">
       </el-table-column>
       <el-table-column label="地址">
         <template slot-scope="scope">
@@ -111,7 +113,7 @@
         <el-form-item label="用户ID">
           <el-input type="textarea" v-model="editForm.addr"></el-input>
         </el-form-item>
-        <el-form-item label="地址ID">
+        <el-form-item label="地址">
           <el-input type="textarea" v-model="editForm.addr"></el-input>
         </el-form-item>
         <el-form-item label="订单详情">
