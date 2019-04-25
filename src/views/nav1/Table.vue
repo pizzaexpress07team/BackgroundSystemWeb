@@ -7,7 +7,8 @@
           <el-input v-model="filters.name" placeholder="订单ID"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" v-on:click="getUsers">查询</el-button>
+          <el-button type="primary" v-on:click="Find">查询</el-button>
+          <!--<el-button type="primary" v-on:click="getUsers">查询</el-button>-->
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -209,6 +210,34 @@
         const addr = JSON.parse(stringAddr);
         return addr.detail;
       },
+      Find() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        const url = `/order/status/get?orderId=${para.name}`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            console.log(result);
+            this.users = result;
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
+      },
 
       //获取列表
       getUsers() {
@@ -254,10 +283,9 @@
           type: 'warning'
         }).then(() => {
           this.listLoading = true;
-          //NProgress.start();
-          let para = {id: row.id};
-          removeUser(para).then((res) => {
-            this.listLoading = false;
+          let para = {id: row.o_id};
+          const url = `//order/status/delete?orderId=${para.id}`;
+          this.postRequest(url);
             //NProgress.done();
             this.$message({
               message: '删除成功',
@@ -265,10 +293,9 @@
             });
             this.getUsers();
           });
-        }).catch(() => {
-
-        });
       },
+
+
       //显示编辑界面
       handleEdit: function (index, row) {
         this.editFormVisible = true;
