@@ -26,7 +26,7 @@
       </el-table-column>
       <el-table-column prop="u_id" label="用户ID" sortable>
       </el-table-column>
-      <el-table-column prop="detail" label="详情">
+      <el-table-column prop="detail.name" label="详情">
       </el-table-column>
       <el-table-column label="地址">
         <template slot-scope="scope">
@@ -230,6 +230,7 @@
           .then(data => {
             //NProgress.done()
             const result = data.data;
+            console.log(result);
             this.users = result;
             this.listLoading = false;
             if (result) {

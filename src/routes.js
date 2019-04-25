@@ -40,10 +40,10 @@ let routes = [
   {
     path: '/',
     component: Home,
-    name: '配送管理',
+    name: '库存管理',
     iconCls: 'fa fa-id-card-o',
     children: [
-      {path: '/page4', component: Page4, name: '配送信息'},
+      {path: '/page4', component: Page4, name: '库存信息'},
       //{path: '/page5', component: Page5, name: '菜单展示'}
     ]
   },

@@ -4,7 +4,7 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="订单ID"></el-input>
+          <el-input v-model="filters.name" placeholder="工厂ID"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" v-on:click="getUsers">查询</el-button>
@@ -22,15 +22,11 @@
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="name" label="订单ID" width="120" sortable>
+      <el-table-column prop="f_id" label="工厂编号" width="120" sortable>
       </el-table-column>
-      <el-table-column prop="sex" label="用户ID" width="100" sortable>
+      <el-table-column prop="r_name" label="存量名称" width="100" sortable>
       </el-table-column>
-      <el-table-column prop="age" label="地址ID" width="100" sortable>
-      </el-table-column>
-      <el-table-column prop="birth" label="订单详情" width="120" sortable>
-      </el-table-column>
-      <el-table-column prop="addr" label="订单价格" min-width="180" sortable>
+      <el-table-column prop="r_num" label="存量数量" width="100">
       </el-table-column>
       <el-table-column label="操作" width="150">
         <template slot-scope="scope">
@@ -196,11 +192,12 @@
           //NProgress.done();
         });*/
 
-        const url = `/deli/status?deliverId=${this.filters.name}`;
+        const url = `/FactoryRes/list?pno=${this.page}&pageSize=10`;
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
+            console.log(result);
             this.users = result;
             this.listLoading = false;
             if (result) {

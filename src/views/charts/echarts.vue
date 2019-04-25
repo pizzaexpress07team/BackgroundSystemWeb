@@ -22,23 +22,19 @@
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="o_id" label="订单ID">
+      <el-table-column prop="username" label="账号" sortable>
       </el-table-column>
-      <el-table-column prop="u_id" label="用户ID" sortable>
+      <el-table-column prop="password" label="密码">
       </el-table-column>
-      <el-table-column label="地址">
+      <el-table-column prop="phone" label="手机">
+      </el-table-column>
+      <el-table-column prop="qq" label="QQ">
+      </el-table-column>
+      <el-table-column prop="sina" label="Sina">
+      </el-table-column>
+      <el-table-column label="管理员">
         <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ tranAddr(scope.row.o_delivery_addr) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="支付状态">
-        <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ parsePayState(scope.row.o_pay_state) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="配送状态">
-        <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ parseDeliveryState(scope.row.delivery_state) }}</span>
+          <span style="margin-left: 10px">{{ admin(scope.row.is_admin) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="150">
@@ -191,6 +187,9 @@
         this.page = val;
         this.getUsers();
       },
+      admin(admin) {
+        return admin === 0 ? '否' : '是';
+      },
       parsePayState(payState) {
         return payState === 0 ? '未支付' : '已支付';
       },
@@ -228,6 +227,7 @@
           .then(data => {
             //NProgress.done()
             const result = data.data;
+            console.log(result);
             this.users = result;
             this.listLoading = false;
             if (result) {
