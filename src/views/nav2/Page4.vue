@@ -18,17 +18,17 @@
     <!--列表-->
     <el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
               style="width: 100%;">
-      <el-table-column type="selection" width="55">
+      <el-table-column type="selection" width="110">
       </el-table-column>
-      <el-table-column type="index" width="60">
+      <el-table-column type="index" width="120">
       </el-table-column>
-      <el-table-column prop="f_id" label="工厂编号" width="120" sortable>
+      <el-table-column prop="f_id" label="工厂编号" width="240" sortable>
       </el-table-column>
-      <el-table-column prop="r_name" label="存量名称" width="100" sortable>
+      <el-table-column prop="r_name" label="存量名称" width="240" sortable>
       </el-table-column>
-      <el-table-column prop="r_num" label="存量数量" width="100">
+      <el-table-column prop="r_num" label="存量数量" width="240">
       </el-table-column>
-      <el-table-column label="操作" width="150">
+      <el-table-column label="操作" width="300">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
           <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
