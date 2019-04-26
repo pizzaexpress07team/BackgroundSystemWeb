@@ -284,7 +284,7 @@
         }).then(() => {
           this.listLoading = true;
           let para = {id: row.o_id};
-          const url = `//order/status/delete?orderId=${para.id}`;
+          const url = `/order/status/delete?orderId=${para.id}`;
           this.postRequest(url);
             //NProgress.done();
             this.$message({
