@@ -27,24 +27,27 @@
       </el-table-column>
       <el-table-column prop="u_id" label="用户ID" sortable>
       </el-table-column>
-      <el-table-column prop="detail.name" label="详情">
-      </el-table-column>
-      <el-table-column label="地址">
+      <el-table-column label="详情" width="400">
         <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ tranAddr(scope.row.o_delivery_addr) }}</span>
+          <span class="order-detail" style="margin-left: 10px">{{ JsonParse(scope.row.detail, 'orderDetail') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="地址" width="300">
+        <template slot-scope="scope">
+          <span style="margin-left: 10px">{{ JsonParse(scope.row.o_delivery_addr, 'addr') }}</span>
         </template>
       </el-table-column>
       <el-table-column  label="支付状态">
         <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ parsePayState(scope.row.o_pay_state) }}</span>
+          <span>{{ parsePayState(scope.row.o_pay_state) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="配送状态">
         <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ parseDeliveryState(scope.row.delivery_state) }}</span>
+          <span>{{ parseDeliveryState(scope.row.delivery_state) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150">
+      <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
           <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
@@ -206,9 +209,31 @@
           return '已送达';
         }
       },
-      tranAddr(stringAddr) {
-        const addr = JSON.parse(stringAddr);
-        return addr.detail;
+      /**
+       * 解析json字符串
+       * @param string 需要解析的string内容
+       * @param whichNeed 用于判断需要返回哪种格式或内容
+       * @returns {*}
+       * @constructor
+       * @return {string}
+       */
+      JsonParse(string, whichNeed) {
+        const parsedString = JSON.parse(string);
+        if (whichNeed === 'addr') {
+          return parsedString.detail;
+        } else if (whichNeed === 'orderDetail') {
+          let detailContent = '';
+          parsedString.forEach((item) => {
+            const size = item.size,
+              num = item.num,
+              name = item.name,
+              price = item.price;
+            const tmpContent = `${size}${name}共${num}份，单价￥${price}\n`;
+            detailContent += tmpContent;
+          });
+          return detailContent;
+        }
+        return parsedString;
       },
       Find() {
         let para = {
@@ -221,7 +246,6 @@
           .then(data => {
             //NProgress.done()
             const result = data.data;
-            console.log(result);
             this.users = result;
             this.listLoading = false;
             if (result) {
@@ -394,5 +418,7 @@
 </script>
 
 <style scoped>
-
+.order-detail {
+  white-space: pre-line;
+}
 </style>
