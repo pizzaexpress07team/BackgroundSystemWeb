@@ -45,6 +45,7 @@ export default {
       });
     },
     parse: function (dateString, pattern) {
+      console.log(2333, dateString);
       var matchs1 = pattern.match(SIGN_REGEXP);
       var matchs2 = dateString.match(/(\d)+/g);
       if (matchs1.length == matchs2.length) {
