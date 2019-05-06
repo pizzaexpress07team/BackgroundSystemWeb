@@ -4,14 +4,19 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="订单ID"></el-input>
+          <el-input v-model="filters.name" placeholder="订单ID或用户ID或用户名"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" v-on:click="Find">查询</el-button>
-          <!--<el-button type="primary" v-on:click="getUsers">查询</el-button>-->
+          <el-button type="primary" v-on:click="Find">按订单ID查询</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleAdd">新增</el-button>
+          <el-button type="primary" v-on:click="FindbyUid">按用户ID查询</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" v-on:click="FindbyUsername">按用户名查询</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="getUsers">重置条件</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -19,25 +24,37 @@
     <!--列表-->
     <el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
               style="width: 100%;">
-      <el-table-column type="selection" width="55">
+<!--      <el-table-column type="selection" width="55">-->
+<!--      </el-table-column>-->
+      <el-table-column type="index">
       </el-table-column>
-      <el-table-column type="index" width="60">
+      <el-table-column prop="o_id" label="订单ID">
       </el-table-column>
-      <el-table-column prop="o_id" label="订单ID" sortable>
+      <el-table-column prop="u_id" label="用户ID">
       </el-table-column>
-      <el-table-column prop="u_id" label="用户ID" sortable>
-      </el-table-column>
-      <el-table-column label="详情" width="400">
+      <el-table-column label="详情" min-width="200">
         <template slot-scope="scope">
           <span class="order-detail" style="margin-left: 10px">{{ JsonParse(scope.row.detail, 'orderDetail') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="地址" width="300">
+      <el-table-column prop="total_price" label="总价(元)">
+      </el-table-column>
+      <el-table-column label="地址"  width="200">
         <template slot-scope="scope">
           <span style="margin-left: 10px">{{ JsonParse(scope.row.o_delivery_addr, 'addr') }}</span>
         </template>
       </el-table-column>
-      <el-table-column  label="支付状态">
+      <el-table-column label="订单创建时间" width="180">
+        <template slot-scope="scope">
+          <span>{{ formatDateFormat(scope.row.o_create_time, 'yyyy-MM-dd hh:mm:ss') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="订单支付时间" width="180">
+        <template slot-scope="scope">
+          <span>{{ formatDateFormat(scope.row.o_pay_time, 'yyyy-MM-dd hh:mm:ss') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="支付状态">
         <template slot-scope="scope">
           <span>{{ parsePayState(scope.row.o_pay_state) }}</span>
         </template>
@@ -47,17 +64,19 @@
           <span>{{ parseDeliveryState(scope.row.delivery_state) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作">
+      <el-table-column label="操作" min-width="200">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
           <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+          <el-button type="warning" size="small" @click="handleCancel(scope.$index, scope.row)">取消</el-button>
+          <el-button style="margin: 10px 0 0;" size="small" @click="getDeliveryman(scope.$index, scope.row)">查看配送信息</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!--工具条-->
+    <!--工具条分页-->
     <el-col :span="24" class="toolbar">
-      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
+<!--      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>-->
       <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                      style="float:right;">
       </el-pagination>
@@ -73,13 +92,21 @@
           <el-input type="textarea" v-model="editForm.u_id" disabled></el-input>
         </el-form-item>
         <el-form-item label="地址">
-          <el-input type="textarea" v-model="editForm.o_delivery_addr"></el-input>
+          <el-input type="textarea" v-model="editForm.o_delivery_addr" disabled=""></el-input>
         </el-form-item>
         <el-form-item label="支付状态">
-          <el-input type="textarea" v-model="editForm.o_pay_state"></el-input>
+          <el-radio-group v-model="editForm.o_pay_state">
+            <el-radio :label="0" disabled>未支付</el-radio>
+            <el-radio :label="1" disabled>已支付</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="配送状态">
-          <el-input type="textarea" v-model="editForm.delivery_state"></el-input>
+          <el-radio-group v-model="editForm.delivery_state">
+            <el-radio :label="0">未配送</el-radio>
+            <el-radio :label="1">配送中</el-radio>
+            <el-radio :label="2">已完成</el-radio>
+            <el-radio :label="3">已取消</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -205,6 +232,8 @@
           return '未配送';
         } else if (deliveryState === 1) {
           return '配送中';
+        } else if (deliveryState === 3) {
+          return '已取消';
         } else {
           return '已送达';
         }
@@ -235,28 +264,82 @@
         }
         return parsedString;
       },
+      // 根据订单ID查询
       Find() {
         let para = {
           page: this.page,
           name: this.filters.name
         };
         this.listLoading = true;
-        const url = `/order/status/get?orderId=${para.name}`;
+        const url = `/order/getById?o_id=${para.name}`;
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
-            this.users = result;
+            this.users = [result.successQuery];
+            this.total = 1;
             this.listLoading = false;
-            if (result) {
-              if (result.length < 10) {
-                this.total = (this.page - 1) * 10 + result.length;
-                console.log(result.length, this.total);
-              }
-            }
-            if (!result) {
+            if (result.errorCode !== 0) {
               this.$message({
-                message: '',
+                message: '暂无该条订单数据',
+                type: 'error'
+              });
+            }
+          });
+      },
+      // 根据用户Id查询
+      FindbyUid() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        const url = `/order/view?uid=${para.name}`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            this.users = result.list;
+            this.total = result.total; // 数据总数 用于列表分页
+            this.listLoading = false;
+            if (result.errorCode !== 0) {
+              this.$message({
+                message: '该用户无订单',
+                type: 'error'
+              });
+            }
+          });
+      },
+      FindbyUsername() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        const url = `/order/status/getByUserName?username=${para.name}`;
+        this.getRequest(url)
+          .then(data => {
+            if (data.status !== 200) {
+              this.$message({
+                message: '系统出错，请稍后再试',
+                type: 'error'
+              });
+              this.listLoading = false;
+              return;
+            }
+            //NProgress.done()
+            const result = data.data;
+            this.users = result.list;
+            this.total = result.total; // 数据总数 用于列表分页
+            this.listLoading = false;
+            if (result.errorCode === 1) {
+              this.$message({
+                message: '该用户不存在',
+                type: 'error'
+              });
+            } else if (result.errorCode === 2) {
+              this.$message({
+                message: '该用户暂无下单',
                 type: 'error'
               });
             }
@@ -278,20 +361,14 @@
           //NProgress.done();
         });*/
 
-        const url = `/order/list?pno=${this.page}&pageSize=10`;
+        const url = `/order/listByTime?pno=${this.page}&pageSize=10`; // 按下单时间查询
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
-            console.log(result);
-            this.users = result;
+            this.users = result.list;
+            this.total = parseInt(result.databaseTotal);
             this.listLoading = false;
-            if (result) {
-              if (result.length < 10) {
-                this.total = (this.page-1) * 10 + result.length;
-                console.log(result.length, this.total);
-              }
-            }
             if (!result) {
               this.$message({
                 message: '',
@@ -303,20 +380,85 @@
 
       //删除
       handleDel: function (index, row) {
-        this.$confirm('确认删除该记录吗?', '提示', {
+        this.$confirm('确认删除该订单吗?', '提示', {
           type: 'warning'
         }).then(() => {
           this.listLoading = true;
           let para = {id: row.o_id};
-          const url = `/order/status/delete?orderId=${para.id}`;
-          this.postRequest(url);
-            //NProgress.done();
+          const url = `/order/delete?o_id=${para.id}`;
+          this.getRequest(url)
+            .then(data => {
+              if (data.data.errorCode === 1) {
+                this.$message.error('此订单ID不存在');
+              } else if (data.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库删除操作失败');
+              } else {
+                this.$message({
+                  message: '删除成功',
+                  type: 'success'
+                });
+              }
+              this.getUsers();
+            });
+          });
+      },
+      // 取消订单
+      handleCancel(index, row) {
+        this.$confirm('确认取消该订单吗?', '提示', {
+          type: 'warning'
+        }).then(async () => {
+          this.listLoading = true;
+          let para = {id: row.o_id};
+          const url = `/order/cancel?o_id=${para.id}`;
+          const result = await this.getRequest(url);
+          //NProgress.done();
+          if (result.data.errorCode === 1) {
+            this.$message.error('此订单ID不存在');
+          } else if (result.data.errorCode === 2) {
+            this.$message.error('系统错误（数据库操作失败）');
+          } else {
             this.$message({
-              message: '删除成功',
+              message: '取消成功',
               type: 'success'
             });
-            this.getUsers();
+          }
+          this.getUsers();
+        });
+      },
+      getDeliveryman(index, row) {
+        let para = {id: row.o_id};
+        const url = `/order/getOrderDeliverman?o_id=${para.id}`;
+        this.getRequest(url)
+          .then(data => {
+            data = data.data;
+            if (data.errorCode === 1) {
+              this.$message.error('此订单暂未开始配送');
+            } else if (data.errorCode === 2) {
+              this.$message.error('系统错误（订单的配送员ID不匹配配送员列表）');
+            } else {
+              data = data.successQuery;
+              this.$alert('' +
+                `<strong>配送员id:</strong><span>${data.d_id}</span><br/>` +
+                `<strong>配送员姓名:</strong><span>${data.d_name}</span><br/>` +
+                `<strong>配送员电话:</strong><span>${data.d_phone}</span><br/>` +
+                `<strong>配送工厂id:</strong><span>${data.f_id}</span>`,
+                '配送信息', {
+                dangerouslyUseHTMLString: true
+              });
+            }
           });
+      },
+      /**
+       * 格式化时间戳
+       * @param timestamp
+       * @param format
+       * @returns {*|Date}
+       */
+      formatDateFormat(timestamp, format) {
+        if (!timestamp) {
+          return '-';
+        }
+        return util.formatDate.format(new Date(timestamp), format);
       },
 
 
@@ -338,27 +480,32 @@
       },
       //编辑
       editSubmit: function () {
-        this.$refs.editForm.validate((valid) => {
-          if (valid) {
-            this.$confirm('确认提交吗？', '提示', {}).then(() => {
-              this.editLoading = true;
-              //NProgress.start();
-              let para = Object.assign({}, this.editForm);
-              //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              editUser(para).then((res) => {
+        // this.$refs.editForm.validate((valid) => {});
+          this.$confirm('确认提交吗？', '提示', {}).then(() => {
+            this.editLoading = true;
+            //NProgress.start();
+            let para = Object.assign({}, this.editForm);
+            //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
+            const url = `/order/modifyDeliState?o_id=${para.o_id}&deliState=${para.delivery_state}`;
+            this.getRequest(url)
+              .then(res => {
                 this.editLoading = false;
                 //NProgress.done();
-                this.$message({
-                  message: '提交成功',
-                  type: 'success'
-                });
+                if (res.data.errorCode === 1) {
+                  this.$message.error('此订单不存在');
+                } else if (res.data.errorCode === 2) {
+                  this.$message.error('系统错误（数据库修改操作失败），请稍后再试');
+                } else {
+                  this.$message({
+                    message: '提交成功',
+                    type: 'success'
+                  });
+                }
                 this.$refs['editForm'].resetFields();
                 this.editFormVisible = false;
                 this.getUsers();
               });
-            });
-          }
-        });
+          });
       },
       //新增
       addSubmit: function () {
@@ -410,7 +557,7 @@
         });
       }
     },
-    mounted() {
+    beforeMount() {
       this.getUsers();
     }
   }
