@@ -43,7 +43,7 @@
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
           <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
-          <el-button style="margin: 10px 0 0;" size="small" @click="getOrder(scope.$index, scope.row)">查看订单信息
+          <el-button style="margin: 5px 0 0;" size="small" @click="getOrder(scope.$index, scope.row)">查看订单信息
           </el-button>
         </template>
       </el-table-column>
@@ -151,7 +151,7 @@
         editLoading: false,
         editFormRules: {
           name: [
-            {required: true, message: '请输入姓名', trigger: 'blur'}
+            {required: false, message: '请输入姓名', trigger: 'blur'}
           ]
         },
         //编辑界面数据
@@ -168,7 +168,7 @@
         addLoading: false,
         addFormRules: {
           name: [
-            {required: true, message: '请输入姓名', trigger: 'blur'}
+            {required: false, message: '请输入姓名', trigger: 'blur'}
           ]
         },
         //新增界面数据
@@ -290,10 +290,11 @@
             } else {
               data = data.list;
               this.$alert('' +
-                `配送员id:${data.d_id} ` +
+                /*`配送员id:${data.d_id} ` +
                 `配送员姓名:${data.d_name} ` +
                 `配送员电话:${data.d_phone} ` +
-                `配送工厂id:${data.f_id} `,
+                `配送工厂id:${data.f_id} `*/
+                `${JsonParse(data, 'orderDetail')}`,
                 '订单信息', {
                   dangerouslyUseHTMLString: true
                 });

@@ -183,7 +183,7 @@
         editLoading: false,
         editFormRules: {
           name: [
-            {required: true, message: '请输入姓名', trigger: 'blur'}
+            {required: false, message: '请输入姓名', trigger: 'blur'}
           ]
         },
         //编辑界面数据
@@ -200,7 +200,7 @@
         addLoading: false,
         addFormRules: {
           name: [
-            {required: true, message: '请输入姓名', trigger: 'blur'}
+            {required: false, message: '请输入姓名', trigger: 'blur'}
           ]
         },
         //新增界面数据

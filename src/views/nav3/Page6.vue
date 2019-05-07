@@ -102,20 +102,20 @@
           <el-input type="textarea" v-model="addForm.addr"></el-input>
         </el-form-item>
         -->
-        <el-form-item label="名称" prop="p_name">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="名称" prop="name">
+          <el-input type="textarea" v-model="filters.p_name"></el-input>
         </el-form-item>
-        <el-form-item label="种类" prop="p_type">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="种类">
+          <el-input type="textarea" v-model="filters.p_type"></el-input>
         </el-form-item>
-        <el-form-item label="价格" prop="price">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="价格">
+          <el-input type="textarea" v-model="filters.price"></el-input>
         </el-form-item>
-        <el-form-item label="原料" prop="resource">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="原料">
+          <el-input type="textarea" v-model="filters.resource"></el-input>
         </el-form-item>
-        <el-form-item label="图片" prop="p_picture">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="图片">
+          <el-input type="textarea" v-model="filters.p_picture"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -148,7 +148,7 @@
         editLoading: false,
         editFormRules: {
           name: [
-            {required: true, message: '请输入姓名', trigger: 'blur'}
+            {required: false, message: '请输入姓名', trigger: 'blur'}
           ]
         },
         //编辑界面数据
@@ -165,7 +165,7 @@
         addLoading: false,
         addFormRules: {
           name: [
-            {required: true, message: '请输入姓名', trigger: 'blur'}
+            {required: false, message: '请输入姓名', trigger: 'blur'}
           ]
         },
         //新增界面数据
@@ -317,18 +317,17 @@
         this.$confirm('确认提交吗？', '提示', {}).then(() => {
           this.editLoading = true;
           let para = {
-            //empty: this.row.is_empty,
-            //id: this.row.p_id,
+            empty: this.users.is_empty,
+            id: this.users.p_id,
             name: this.editForm.p_name,
             picture: this.editForm.p_picture,
-            //size: this.row.p_size,
+            size: this.users.p_size,
             type: this.editForm.p_type,
             price: this.editForm.price,
-            resource: this.editForm.resource,
+            resource: JSON.stringify(this.editForm.resource),
           };
-          //const url = `/FactoryRes/updateResNum?f_id=${this.editForm.f_id}&r_id=${this.editForm.r_id}&num=${para.num}`;
-          const url = `/menu/modify?pizzaInfoWithRes=[{"is_empty":${row.is_empty},"p_id":${row.p_id},"p_name":${para.name},"p_picture":${para.picture},"p_size":${row.p_size},"p_type":${row.p_type},"price":${para.price},"resource":${para.resource}}]`;
-          this.getRequest(url)
+          const url = `/menu/modify?pizzaInfoWithRes=${para}`;
+          this.postRequest(url)
             .then(res => {
               this.editLoading = false;
               //NProgress.done();
@@ -350,26 +349,37 @@
       },
       //新增
       addSubmit: function () {
-        this.$refs.addForm.validate((valid) => {
-          if (valid) {
-            this.$confirm('确认提交吗？', '提示', {}).then(() => {
-              this.addLoading = true;
-              //NProgress.start();
-              let para = Object.assign({}, this.addForm);
-              //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              addUser(para).then((res) => {
-                this.addLoading = false;
-                //NProgress.done();
+        this.$confirm('确认提交吗？', '提示', {}).then(() => {
+          this.editLoading = true;
+          let para = {
+            empty: this.users.is_empty,
+            id: this.users.p_id,
+            name: this.filters.p_name,
+            picture: this.filters.p_picture,
+            size: this.users.p_size,
+            type: this.filters.p_type,
+            price: this.filters.price,
+            resource: JSON.stringify(this.filters.resource),
+          };
+          const url = `/menu/createWithRes?pizzaInfoWithRes=${para}`;
+          this.postRequest(url)
+            .then(res => {
+              this.editLoading = false;
+              //NProgress.done();
+              if (res.data.errorCode === 1) {
+                this.$message.error('此菜单已存在');
+              } else if (res.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库修改操作失败），请稍后再试');
+              } else {
                 this.$message({
                   message: '提交成功',
                   type: 'success'
                 });
-                this.$refs['addForm'].resetFields();
-                this.addFormVisible = false;
-                this.getUsers();
-              });
+              }
+              this.$refs['editForm'].resetFields();
+              this.editFormVisible = false;
+              this.getUsers();
             });
-          }
         });
       },
       selsChange: function (sels) {
