@@ -326,8 +326,8 @@
             price: this.editForm.price,
             resource: JSON.stringify(this.editForm.resource),
           };
-          const url = `/menu/modify?pizzaInfoWithRes=${para}`;
-          this.postRequest(url)
+          const url = `/menu/modify?pizzaInfoWithRes=${JSON.stringify(para)}`;
+          this.getRequest(url, para)
             .then(res => {
               this.editLoading = false;
               //NProgress.done();
