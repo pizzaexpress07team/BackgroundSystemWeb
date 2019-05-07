@@ -327,7 +327,7 @@
             resource: JSON.stringify(this.editForm.resource),
           };
           const url = `/menu/modify?pizzaInfoWithRes=${JSON.stringify(para)}`;
-          this.getRequest(url, para)
+          this.getRequest(url)
             .then(res => {
               this.editLoading = false;
               //NProgress.done();
