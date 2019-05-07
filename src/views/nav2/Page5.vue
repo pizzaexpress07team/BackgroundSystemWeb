@@ -13,6 +13,9 @@
           <el-button type="primary" v-on:click="Findbyname">按姓名查询</el-button>
         </el-form-item>
         <el-form-item>
+          <el-button type="primary" v-on:click="Findbytrans">正在配送</el-button>
+        </el-form-item>
+        <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
         </el-form-item>
         <el-form-item>
@@ -40,6 +43,8 @@
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
           <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
+          <el-button style="margin: 10px 0 0;" size="small" @click="getOrder(scope.$index, scope.row)">查看订单信息
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -234,6 +239,92 @@
               });
             }
           });
+      },
+      Findbytrans() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        //NProgress.start();
+        /*getUserListPage(para).then((res) => {
+          this.total = res.data.total;
+          this.users = res.data.users;
+          this.listLoading = false;
+          //NProgress.done();
+        });*/
+
+        const url = `/deli/listOrder?pno=${this.page}&pageSize=100`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            console.log(result);
+            this.users = result.list;
+            this.total = parseInt(result.total);
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
+      },
+      getOrder(index, row) {
+        let para = {id: row.d_id};
+        const url = `/deli/getDeliOrderById?d_id=${para.id}`;
+        this.getRequest(url)
+          .then(data => {
+            data = data.data;
+            if (data.errorCode === 1) {
+              this.$message.error('配送员不存在');
+            } else if (data.errorCode === 2) {
+              this.$message.error('配送员还未接单');
+            } else {
+              data = data.list;
+              this.$alert('' +
+                `配送员id:${data.d_id} ` +
+                `配送员姓名:${data.d_name} ` +
+                `配送员电话:${data.d_phone} ` +
+                `配送工厂id:${data.f_id} `,
+                '订单信息', {
+                  dangerouslyUseHTMLString: true
+                });
+            }
+          });
+      },
+      /**
+       * 解析json字符串
+       * @param string 需要解析的string内容
+       * @param whichNeed 用于判断需要返回哪种格式或内容
+       * @returns {*}
+       * @constructor
+       * @return {string}
+       */
+      JsonParse(string, whichNeed) {
+        const parsedString = JSON.parse(string);
+        if (whichNeed === 'addr') {
+          return parsedString.detail;
+        } else if (whichNeed === 'orderDetail') {
+          let detailContent = '';
+          parsedString.forEach((item) => {
+            const size = item.size,
+              num = item.num,
+              name = item.name,
+              price = item.price;
+            const tmpContent = `${size}${name}共${num}份，单价￥${price}\n`;
+            detailContent += tmpContent;
+          });
+          return detailContent;
+        }
+        return parsedString;
       },
       //性别显示转换
       formatSex: function (row, column) {

@@ -438,10 +438,10 @@
             } else {
               data = data.successQuery;
               this.$alert('' +
-                `<strong>配送员id:</strong><span>${data.d_id}</span><br/>` +
-                `<strong>配送员姓名:</strong><span>${data.d_name}</span><br/>` +
-                `<strong>配送员电话:</strong><span>${data.d_phone}</span><br/>` +
-                `<strong>配送工厂id:</strong><span>${data.f_id}</span>`,
+                `配送员id:${data.d_id} ` +
+                `配送员姓名:${data.d_name} ` +
+                `配送员电话:${data.d_phone} ` +
+                `配送工厂id:${data.f_id} `,
                 '配送信息', {
                 dangerouslyUseHTMLString: true
               });
