@@ -4,13 +4,19 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="订单ID"></el-input>
+          <el-input v-model="filters.name" placeholder="配送员姓名"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" v-on:click="getUsers">查询</el-button>
+          <!--<el-button type="primary" v-on:click="Find">按ID查询</el-button>-->
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" v-on:click="Findbyname">按姓名查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="getUsers">重置条件</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -22,36 +28,25 @@
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="o_id" label="订单ID">
+      <el-table-column prop="d_id" label="编号" sortable>
       </el-table-column>
-      <el-table-column prop="u_id" label="用户ID" sortable>
+      <el-table-column prop="d_name" label="姓名">
       </el-table-column>
-      <el-table-column label="地址">
-        <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ tranAddr(scope.row.o_delivery_addr) }}</span>
-        </template>
+      <el-table-column prop="d_phone" label="电话">
       </el-table-column>
-      <el-table-column label="支付状态">
-        <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ parsePayState(scope.row.o_pay_state) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="配送状态">
-        <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ parseDeliveryState(scope.row.delivery_state) }}</span>
-        </template>
+      <el-table-column prop="f_id" label="工厂">
       </el-table-column>
       <el-table-column label="操作" width="150">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+          <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
         </template>
       </el-table-column>
     </el-table>
 
     <!--工具条-->
     <el-col :span="24" class="toolbar">
-      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
+      <!--<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>-->
       <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                      style="float:right;">
       </el-pagination>
@@ -111,7 +106,7 @@
         <el-form-item label="用户ID">
           <el-input type="textarea" v-model="editForm.addr"></el-input>
         </el-form-item>
-        <el-form-item label="地址ID">
+        <el-form-item label="地址">
           <el-input type="textarea" v-model="editForm.addr"></el-input>
         </el-form-item>
         <el-form-item label="订单详情">
@@ -183,6 +178,63 @@
       }
     },
     methods: {
+      Find() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        const url = `/deli/getById?d_id=${para.name}`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            console.log(result);
+            this.users = result.successQuery;
+            this.listLoading = false;
+            /*if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }*/
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
+      },
+      Findbyname() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        const url = `/deli/getByNameLike?d_name=${para.name}`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            console.log(result);
+            this.users = result.list;
+            this.total = result.total;
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
+      },
       //性别显示转换
       formatSex: function (row, column) {
         return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知';
@@ -190,6 +242,9 @@
       handleCurrentChange(val) {
         this.page = val;
         this.getUsers();
+      },
+      admin(admin) {
+        return admin === 0 ? '否' : '是';
       },
       parsePayState(payState) {
         return payState === 0 ? '未支付' : '已支付';
@@ -223,12 +278,14 @@
           //NProgress.done();
         });*/
 
-        const url = `/menu/info?pno=${this.page}&pageSize=10`;
+        const url = `/deli/list?pno=${this.page}&pageSize=10`;
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
-            this.users = result;
+            console.log(result);
+            this.users = result.list;
+            this.total = parseInt(result.total);
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {

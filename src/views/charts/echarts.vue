@@ -4,13 +4,16 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="用户ID"></el-input>
+          <el-input v-model="filters.name" placeholder="账号"></el-input>
         </el-form-item>
         <el-form-item>
-          <!--<el-button type="primary" v-on:click="Find">查询</el-button>-->
+          <el-button type="primary" v-on:click="Find">按账号查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="getUsers">重置条件</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -40,14 +43,14 @@
       <el-table-column label="操作" width="150">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+          <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
         </template>
       </el-table-column>
     </el-table>
 
     <!--工具条-->
     <el-col :span="24" class="toolbar">
-      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
+      <!--<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>-->
       <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                      style="float:right;">
       </el-pagination>
@@ -185,13 +188,14 @@
           name: this.filters.name
         };
         this.listLoading = true;
-        const url = `/order/status/get?orderId=${para.name}`;
+        const url = `/user/getByUserNameLike?username=${para.name}`;
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
             console.log(result);
-            this.users = result;
+            this.users = result.list;
+            this.total = result.total;
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {
@@ -256,7 +260,8 @@
             //NProgress.done()
             const result = data.data;
             console.log(result);
-            this.users = result;
+            this.users = result.list;
+            this.total = parseInt(result.dataBaseTotal);
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {
@@ -275,23 +280,26 @@
 
       //删除
       handleDel: function (index, row) {
-        this.$confirm('确认删除该记录吗?', '提示', {
+        this.$confirm('确认删除该订单吗?', '提示', {
           type: 'warning'
         }).then(() => {
           this.listLoading = true;
-          //NProgress.start();
-          let para = {id: row.id};
-          removeUser(para).then((res) => {
-            this.listLoading = false;
-            //NProgress.done();
-            this.$message({
-              message: '删除成功',
-              type: 'success'
+          let para = {id: row.o_id};
+          const url = `/order/delete?o_id=${para.id}`;
+          this.getRequest(url)
+            .then(data => {
+              if (data.data.errorCode === 1) {
+                this.$message.error('此订单ID不存在');
+              } else if (data.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库删除操作失败');
+              } else {
+                this.$message({
+                  message: '删除成功',
+                  type: 'success'
+                });
+              }
+              this.getUsers();
             });
-            this.getUsers();
-          });
-        }).catch(() => {
-
         });
       },
       //显示编辑界面

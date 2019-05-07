@@ -4,7 +4,7 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="订单ID或用户ID或用户名"></el-input>
+          <el-input v-model="filters.name" placeholder="订单ID 用户ID 用户名"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" v-on:click="Find">按订单ID查询</el-button>
@@ -24,8 +24,8 @@
     <!--列表-->
     <el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
               style="width: 100%;">
-<!--      <el-table-column type="selection" width="55">-->
-<!--      </el-table-column>-->
+      <!--<el-table-column type="selection" width="55">-->
+      <!--</el-table-column>-->
       <el-table-column type="index">
       </el-table-column>
       <el-table-column prop="o_id" label="订单ID">
@@ -37,29 +37,29 @@
           <span class="order-detail" style="margin-left: 10px">{{ JsonParse(scope.row.detail, 'orderDetail') }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="total_price" label="总价(元)">
+      <el-table-column prop="total_price" label="总价">
       </el-table-column>
-      <el-table-column label="地址"  width="200">
+      <el-table-column label="地址" width="150">
         <template slot-scope="scope">
           <span style="margin-left: 10px">{{ JsonParse(scope.row.o_delivery_addr, 'addr') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单创建时间" width="180">
+      <el-table-column label="创建时间" width="110">
         <template slot-scope="scope">
           <span>{{ formatDateFormat(scope.row.o_create_time, 'yyyy-MM-dd hh:mm:ss') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="订单支付时间" width="180">
+      <el-table-column label="支付时间" width="110">
         <template slot-scope="scope">
           <span>{{ formatDateFormat(scope.row.o_pay_time, 'yyyy-MM-dd hh:mm:ss') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="支付状态">
+      <el-table-column label="支付状态" width="100">
         <template slot-scope="scope">
           <span>{{ parsePayState(scope.row.o_pay_state) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="配送状态">
+      <el-table-column label="配送状态" width="100">
         <template slot-scope="scope">
           <span>{{ parseDeliveryState(scope.row.delivery_state) }}</span>
         </template>
@@ -76,7 +76,6 @@
 
     <!--工具条分页-->
     <el-col :span="24" class="toolbar">
-<!--      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>-->
       <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                      style="float:right;">
       </el-pagination>
@@ -366,6 +365,7 @@
           .then(data => {
             //NProgress.done()
             const result = data.data;
+            console.log(result);
             this.users = result.list;
             this.total = parseInt(result.databaseTotal);
             this.listLoading = false;

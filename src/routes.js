@@ -28,7 +28,7 @@ let routes = [
   {
     path: '/',
     component: Home,
-    name: '订单管理',
+    name: '订单管理页',
     iconCls: 'fa fa-id-card-o',//图标样式class
     children: [
       {path: '/main', component: Main, name: 'Main', hidden: true},
@@ -40,7 +40,7 @@ let routes = [
   {
     path: '/',
     component: Home,
-    name: '库存管理',
+    name: '库存管理页',
     iconCls: 'fa fa-id-card-o',
     children: [
       {path: '/page4', component: Page4, name: '库存信息'},
@@ -50,7 +50,7 @@ let routes = [
   {
     path: '/',
     component: Home,
-    name: '菜单展示',
+    name: '菜单展示栏',
     iconCls: 'fa fa-address-card',
     children: [
       {path: '/page6', component: Page6, name: '菜单信息'}
@@ -59,11 +59,12 @@ let routes = [
   {
     path: '/',
     component: Home,
-    name: '用户信息',
+    name: '用户与配送',
     iconCls: 'fa fa-bar-chart',
     //leaf: true,//只有一个节点
     children: [
-      {path: '/echarts', component: echarts, name: '用户列表'}
+      {path: '/echarts', component: echarts, name: '用户列表'},
+      {path: '/page5', component: Page5, name: '配送员表'}
     ]
   },
   {

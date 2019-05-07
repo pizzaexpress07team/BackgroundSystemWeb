@@ -4,13 +4,19 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="工厂ID"></el-input>
+          <el-input v-model="filters.name" placeholder="工厂编号 原料名称"></el-input>
         </el-form-item>
         <el-form-item>
-          <!--<el-button type="primary" v-on:click="Find">查询</el-button>-->
+          <el-button type="primary" v-on:click="Find">按工厂查询</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" v-on:click="Findbyname">按原料查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="getUsers">重置条件</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -31,36 +37,31 @@
       <el-table-column label="操作" width="300">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+          <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
         </template>
       </el-table-column>
     </el-table>
 
+
     <!--工具条-->
     <el-col :span="24" class="toolbar">
-      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
       <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total"
                      style="float:right;">
       </el-pagination>
     </el-col>
 
+
     <!--编辑界面-->
     <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
       <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-        <el-form-item label="订单ID" prop="name">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="工厂编号" prop="name">
+          <el-input type="textarea" v-model="editForm.f_id" disabled></el-input>
         </el-form-item>
-        <el-form-item label="用户ID">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="存量名称">
+          <el-input type="textarea" v-model="editForm.r_name" disabled></el-input>
         </el-form-item>
-        <el-form-item label="地址ID">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
-        </el-form-item>
-        <el-form-item label="订单详情">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
-        </el-form-item>
-        <el-form-item label="订单价格">
-          <el-input type="textarea" v-model="editForm.addr"></el-input>
+        <el-form-item label="增减数量">
+          <el-input type="textarea" v-model="filters.num"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -175,13 +176,43 @@
           name: this.filters.name
         };
         this.listLoading = true;
-        const url = `/order/status/get?orderId=${para.name}`;
+        const url = `/FactoryRes/getByFId?f_id=${para.name}`;
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
             console.log(result);
-            this.users = result;
+            this.users = result.SuccessQuery;
+            this.total = parseInt(result.total);
+            this.listLoading = false;
+            if (result) {
+              if (result.length < 10) {
+                this.total = (this.page - 1) * 10 + result.length;
+                console.log(result.length, this.total);
+              }
+            }
+            if (!result) {
+              this.$message({
+                message: '',
+                type: 'error'
+              });
+            }
+          });
+      },
+      Findbyname() {
+        let para = {
+          page: this.page,
+          name: this.filters.name
+        };
+        this.listLoading = true;
+        const url = `/FactoryRes/getByRNameLike?r_name=${para.name}`;
+        this.getRequest(url)
+          .then(data => {
+            //NProgress.done()
+            const result = data.data;
+            console.log(result);
+            this.users = result.SuccessQuery;
+            this.total = parseInt(result.total);
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {
@@ -226,7 +257,8 @@
             //NProgress.done()
             const result = data.data;
             console.log(result);
-            this.users = result;
+            this.users = result.list;
+            this.total = parseInt(result.total);
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {
@@ -244,23 +276,26 @@
       },
       //删除
       handleDel: function (index, row) {
-        this.$confirm('确认删除该记录吗?', '提示', {
+        this.$confirm('确认删除该库存吗?', '提示', {
           type: 'warning'
         }).then(() => {
           this.listLoading = true;
-          //NProgress.start();
-          let para = {id: row.id};
-          removeUser(para).then((res) => {
-            this.listLoading = false;
-            //NProgress.done();
-            this.$message({
-              message: '删除成功',
-              type: 'success'
+          let para = {id: row.o_id};
+          const url = `/order/delete?o_id=${para.id}`;
+          this.getRequest(url)
+            .then(data => {
+              if (data.data.errorCode === 1) {
+                this.$message.error('此订单ID不存在');
+              } else if (data.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库删除操作失败');
+              } else {
+                this.$message({
+                  message: '删除成功',
+                  type: 'success'
+                });
+              }
+              this.getUsers();
             });
-            this.getUsers();
-          });
-        }).catch(() => {
-
         });
       },
       //显示编辑界面
@@ -280,27 +315,29 @@
         };
       },
       //编辑
-      editSubmit: function () {
-        this.$refs.editForm.validate((valid) => {
-          if (valid) {
-            this.$confirm('确认提交吗？', '提示', {}).then(() => {
-              this.editLoading = true;
-              //NProgress.start();
-              let para = Object.assign({}, this.editForm);
-              //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              editUser(para).then((res) => {
-                this.editLoading = false;
-                //NProgress.done();
+      editSubmit: function (index, row) {
+        this.$confirm('确认提交吗？', '提示', {}).then(() => {
+          this.editLoading = true;
+          let para = {num: this.filters.num};
+          const url = `/FactoryRes/updateResNum?f_id=${this.editForm.f_id}&r_id=${this.editForm.r_id}&num=${para.num}`;
+          this.getRequest(url)
+            .then(res => {
+              this.editLoading = false;
+              //NProgress.done();
+              if (res.data.errorCode === 1) {
+                this.$message.error('此库存不存在');
+              } else if (res.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库修改操作失败），请稍后再试');
+              } else {
                 this.$message({
                   message: '提交成功',
                   type: 'success'
                 });
-                this.$refs['editForm'].resetFields();
-                this.editFormVisible = false;
-                this.getUsers();
-              });
+              }
+              this.$refs['editForm'].resetFields();
+              this.editFormVisible = false;
+              this.getUsers();
             });
-          }
         });
       },
       //新增

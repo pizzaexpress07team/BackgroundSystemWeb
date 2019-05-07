@@ -4,13 +4,16 @@
     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters">
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="食品名称"></el-input>
+          <el-input v-model="filters.name" placeholder="菜单名称"></el-input>
         </el-form-item>
         <el-form-item>
-          <!--<el-button type="primary" v-on:click="Find">查询</el-button>-->
+          <el-button type="primary" v-on:click="Find">按名称查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="getUsers">重置条件</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -35,12 +38,17 @@
           <span style="margin-left: 10px">{{ (scope.row.p_picture) }}</span>
         </template>
       </el-table-column>
-
+      <el-table-column label="操作" width="150">
+        <template slot-scope="scope">
+          <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+          <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
     <!--工具条-->
     <el-col :span="24" class="toolbar">
-      <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
+      <!--<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>-->
       <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total"
                      style="float:right;">
       </el-pagination>
@@ -49,20 +57,20 @@
     <!--编辑界面-->
     <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
       <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-        <el-form-item label="名称" prop="p_name">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="名称" prop="name">
+          <el-input type="textarea" v-model="editForm.p_name"></el-input>
         </el-form-item>
-        <el-form-item label="种类" prop="p_type">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="种类">
+          <el-input type="textarea" v-model="editForm.p_type"></el-input>
         </el-form-item>
-        <el-form-item label="价格" prop="price">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="价格">
+          <el-input type="textarea" v-model="editForm.price"></el-input>
         </el-form-item>
-        <el-form-item label="原料" prop="resource">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="原料">
+          <el-input type="textarea" v-model="editForm.resource"></el-input>
         </el-form-item>
-        <el-form-item label="图片" prop="p_picture">
-          <el-input type="textarea" v-model="editForm.text"></el-input>
+        <el-form-item label="图片">
+          <el-input type="textarea" v-model="editForm.p_picture"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -178,13 +186,13 @@
           name: this.filters.name
         };
         this.listLoading = true;
-        const url = `/order/status/get?orderId=${para.name}`;
+        const url = `/menu/getByNameLike?p_name=${para.name}`;
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
             const result = data.data;
             console.log(result);
-            this.users = result;
+            this.users = result.list;
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {
@@ -244,9 +252,10 @@
         this.getRequest(url)
           .then(data => {
             //NProgress.done()
-            const result = data.data.list;
+            const result = data.data;
             console.log(result);
-            this.users = result;
+            this.users = result.list;
+            this.total = parseInt(result.total);
             this.listLoading = false;
             if (result) {
               if (result.length < 10) {
@@ -265,23 +274,26 @@
 
       //删除
       handleDel: function (index, row) {
-        this.$confirm('确认删除该记录吗?', '提示', {
+        this.$confirm('确认删除该菜单吗?', '提示', {
           type: 'warning'
         }).then(() => {
           this.listLoading = true;
-          //NProgress.start();
-          let para = {id: row.id};
-          removeUser(para).then((res) => {
-            this.listLoading = false;
-            //NProgress.done();
-            this.$message({
-              message: '删除成功',
-              type: 'success'
+          let para = {id: row.p_id};
+          const url = `/menu/deleteWithRes?p_id=${para.id}`;
+          this.getRequest(url)
+            .then(data => {
+              if (data.data.errorCode === 1) {
+                this.$message.error('此菜单不存在');
+              } else if (data.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库删除操作失败');
+              } else {
+                this.$message({
+                  message: '删除成功',
+                  type: 'success'
+                });
+              }
+              this.getUsers();
             });
-            this.getUsers();
-          });
-        }).catch(() => {
-
         });
       },
       //显示编辑界面
@@ -301,27 +313,39 @@
         };
       },
       //编辑
-      editSubmit: function () {
-        this.$refs.editForm.validate((valid) => {
-          if (valid) {
-            this.$confirm('确认提交吗？', '提示', {}).then(() => {
-              this.editLoading = true;
-              //NProgress.start();
-              let para = Object.assign({}, this.editForm);
-              //para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              editUser(para).then((res) => {
-                this.editLoading = false;
-                //NProgress.done();
+      editSubmit: function (index, row) {
+        this.$confirm('确认提交吗？', '提示', {}).then(() => {
+          this.editLoading = true;
+          let para = {
+            //empty: this.row.is_empty,
+            //id: this.row.p_id,
+            name: this.editForm.p_name,
+            picture: this.editForm.p_picture,
+            //size: this.row.p_size,
+            type: this.editForm.p_type,
+            price: this.editForm.price,
+            resource: this.editForm.resource,
+          };
+          //const url = `/FactoryRes/updateResNum?f_id=${this.editForm.f_id}&r_id=${this.editForm.r_id}&num=${para.num}`;
+          const url = `/menu/modify?pizzaInfoWithRes=[{"is_empty":${row.is_empty},"p_id":${row.p_id},"p_name":${para.name},"p_picture":${para.picture},"p_size":${row.p_size},"p_type":${row.p_type},"price":${para.price},"resource":${para.resource}}]`;
+          this.getRequest(url)
+            .then(res => {
+              this.editLoading = false;
+              //NProgress.done();
+              if (res.data.errorCode === 1) {
+                this.$message.error('此菜单不存在');
+              } else if (res.data.errorCode === 2) {
+                this.$message.error('系统错误（数据库修改操作失败），请稍后再试');
+              } else {
                 this.$message({
                   message: '提交成功',
                   type: 'success'
                 });
-                this.$refs['editForm'].resetFields();
-                this.editFormVisible = false;
-                this.getUsers();
-              });
+              }
+              this.$refs['editForm'].resetFields();
+              this.editFormVisible = false;
+              this.getUsers();
             });
-          }
         });
       },
       //新增
