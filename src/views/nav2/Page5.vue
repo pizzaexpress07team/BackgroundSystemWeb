@@ -42,7 +42,7 @@
       <el-table-column label="操作" width="150">
         <template slot-scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-          <!--<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
+          <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
           <el-button style="margin: 5px 0 0;" size="small" @click="getOrder(scope.$index, scope.row)">查看订单信息
           </el-button>
         </template>
@@ -396,23 +396,26 @@
 
       //删除
       handleDel: function (index, row) {
-        this.$confirm('确认删除该记录吗?', '提示', {
+        this.$confirm('确认删除吗?', '提示', {
           type: 'warning'
         }).then(() => {
           this.listLoading = true;
-          //NProgress.start();
-          let para = {id: row.id};
-          removeUser(para).then((res) => {
-            this.listLoading = false;
-            //NProgress.done();
-            this.$message({
-              message: '删除成功',
-              type: 'success'
+          let para = {id: row.d_id};
+          const url = `/deli/delete?d_id=${para.id}`;
+          this.getRequest(url)
+            .then(data => {
+              if (data.data.errorCode === 1) {
+                this.$message.error('此配送员不存在');
+              } else if (data.data.errorCode === 2) {
+                this.$message.error('此配送员已有订单');
+              } else {
+                this.$message({
+                  message: '删除成功',
+                  type: 'success'
+                });
+              }
+              this.getUsers();
             });
-            this.getUsers();
-          });
-        }).catch(() => {
-
         });
       },
       //显示编辑界面
