@@ -13,7 +13,7 @@
           <el-button type="primary" v-on:click="Findbyname">按原料查询</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleAdd">新增</el-button>
+          <!--<el-button type="primary" @click="handleAdd">新增</el-button>-->
         </el-form-item>
         <el-form-item>
           <el-button @click="getUsers">重置条件</el-button>
