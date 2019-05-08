@@ -431,6 +431,7 @@
         this.getRequest(url)
           .then(data => {
             data = data.data;
+            console.log(data);
             if (data.errorCode === 1) {
               this.$message.error('此订单暂未开始配送');
             } else if (data.errorCode === 2) {

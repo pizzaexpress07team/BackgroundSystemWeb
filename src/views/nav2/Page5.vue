@@ -283,18 +283,17 @@
         this.getRequest(url)
           .then(data => {
             data = data.data;
+            console.log(data);
             if (data.errorCode === 1) {
               this.$message.error('配送员不存在');
             } else if (data.errorCode === 2) {
               this.$message.error('配送员还未接单');
             } else {
-              data = data.list;
+              data = data.list[0];
               this.$alert('' +
-                /*`配送员id:${data.d_id} ` +
-                `配送员姓名:${data.d_name} ` +
-                `配送员电话:${data.d_phone} ` +
-                `配送工厂id:${data.f_id} `*/
-                `${JsonParse(data, 'orderDetail')}`,
+                `订单id:${data.o_id} ` +
+                `订单详情:${data.detail} ` +
+                `订单价格:${data.total_price} `,
                 '订单信息', {
                   dangerouslyUseHTMLString: true
                 });

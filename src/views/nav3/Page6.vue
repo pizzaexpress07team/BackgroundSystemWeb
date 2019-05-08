@@ -329,6 +329,7 @@
           const url = `/menu/modify?pizzaInfoWithRes=${JSON.stringify(para)}`;
           this.getRequest(url)
             .then(res => {
+              header("Access-Control-Allow-Origin: *");
               this.editLoading = false;
               //NProgress.done();
               if (res.data.errorCode === 1) {
@@ -352,16 +353,16 @@
         this.$confirm('确认提交吗？', '提示', {}).then(() => {
           this.editLoading = true;
           let para = {
-            empty: this.users.is_empty,
-            id: this.users.p_id,
+            empty: "",
+            id: "",
             name: this.filters.p_name,
             picture: this.filters.p_picture,
-            size: this.users.p_size,
+            size: "",
             type: this.filters.p_type,
             price: this.filters.price,
             resource: JSON.stringify(this.filters.resource),
           };
-          const url = `/menu/createWithRes?pizzaInfoWithRes=${para}`;
+          const url = `/menu/createWithRes?pizzaInfoWithRes=${JSON.stringify(para)}`;
           this.postRequest(url)
             .then(res => {
               this.editLoading = false;
