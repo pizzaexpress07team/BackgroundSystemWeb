@@ -13,7 +13,7 @@
           <el-button type="primary" v-on:click="FindbyUid">按用户ID查询</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" v-on:click="FindbyUsername">按用户名查询</el-button>
+          <!--<el-button type="primary" v-on:click="FindbyUsername">按用户名查询</el-button>-->
         </el-form-item>
         <el-form-item>
           <el-button @click="getUsers">重置条件</el-button>
